@@ -3,3 +3,8 @@ pandas
 matplolib
 seaborn
 scikit-learn
+scipy
+patsy
+pandas
+statsmodels
+texttable
