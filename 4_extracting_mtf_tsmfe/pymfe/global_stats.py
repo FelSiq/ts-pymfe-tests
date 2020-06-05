@@ -788,7 +788,12 @@ class MFETSGlobalStats:
             Scholarpedia, vol. 2, no. 5, p. 3043.
         .. [4] "nolds" Python package. URL: https://pypi.org/project/nolds/
         """
-        corr_dim = nolds.corr_dim(ts, emb_dim=emb_dim)
+        try:
+            corr_dim = nolds.corr_dim(ts, emb_dim=emb_dim)
+
+        except AssertionError:
+            corr_dim = np.nan
+
         return corr_dim
 
     @classmethod
@@ -858,3 +863,51 @@ class MFETSGlobalStats:
             DOI: 10.1098/rsif.2013.0048
         """
         return scipy.stats.trim_mean(ts, proportiontocut=pcut)
+
+    @classmethod
+    def ft_spikiness(cls,
+                     ts_residuals: np.ndarray,
+                     ddof: int = 1) -> np.ndarray:
+        """Spikiness of the time-series residuals.
+
+        The spikiness of the time-series residuals is the variance of the
+        variance with jackknife resampling (leave-one-out) on the residuals.
+        Here, in order to enable other times of summarization, we return all
+        the `jackknifed` variances.
+
+        Parameters
+        ----------
+        ts : :obj:`np.ndarray`
+            One-dimensional time-series values.
+
+        ddof : int, optional (default=1)
+            Degrees of freedom to calculate the variances.
+
+        Returns
+        -------
+        :obj:`np.ndarray`
+            Spikiness of the time-series residuals.
+
+        References
+        ----------
+        .. [1] R. J. Hyndman, E. Wang and N. Laptev, "Large-Scale Unusual Time
+            Series Detection," 2015 IEEE International Conference on Data
+            Mining Workshop (ICDMW), Atlantic City, NJ, 2015, pp. 1616-1619,
+            doi: 10.1109/ICDMW.2015.104.
+        .. [2] Hyndman, R. J., Wang, E., Kang, Y., & Talagala, T. (2018).
+            tsfeatures: Time series feature extraction. R package version 0.1.
+        .. [3] Pablo Montero-Manso, George Athanasopoulos, Rob J. Hyndman,
+            Thiyanga S. Talagala, FFORMA: Feature-based forecast model
+            averaging, International Journal of Forecasting, Volume 36, Issue
+            1, 2020, Pages 86-92, ISSN 0169-2070,
+            https://doi.org/10.1016/j.ijforecast.2019.02.011.
+        """
+        vars_ = np.array([
+            np.var(np.delete(ts_residuals, i), ddof=ddof)
+            for i in np.arange(ts_residuals.size)
+        ])
+
+        # Note: on the original reference paper, the spikiness is calculated
+        # as the variance of the 'vars_'. However, to enable summarization,
+        # here we return the full array.
+        return vars_
