@@ -27,6 +27,7 @@ class RobustSigmoid:
 
         # Note: '1.35' is the IQR of a Normal(0, 1) distribution.
         self.iqr = 1.35 * np.subtract(*np.quantile(X, (0.75, 0.25), axis=0))
+        self.iqr = self.iqr.astype(float)
 
         self.ids_trad = np.isclose(self.iqr, 0.0)
         self.ids_robust = ~self.ids_trad
@@ -56,13 +57,16 @@ class RobustSigmoid:
         _np_err = np.geterr()
         np.seterr(over="ignore")
 
-        X[:, self.ids_robust] = 1. / (1. + np.exp(
-            -(X[:, self.ids_robust] - self.median) / self.iqr))
-        X[:, self.ids_trad] = 1. / (1. + np.exp(
-            -(X[:, self.ids_trad] - self.mean) / self.std))
-
         X[np.isclose(np.inf, X)] = 1.
         X[np.isclose(-np.inf, X)] = 0.
+
+        if self.iqr.size > 0:
+            X[:, self.ids_robust] = 1. / (1. + np.exp(
+                -(X[:, self.ids_robust] - self.median) / self.iqr))
+
+        if self.std.size > 0:
+            X[:, self.ids_trad] = 1. / (1. + np.exp(
+                -(X[:, self.ids_trad] - self.mean) / self.std))
 
         np.seterr(**_np_err)
 
