@@ -34,8 +34,7 @@ for test in results_pymfe.columns:
     acc_t = results_tspymfe[test].values
 
     # Calculate the T-test for the means of two independent samples of scores.
-    _, t_p_val_a = scipy.stats.ttest_ind(acc_u, acc_t, equal_var=True)
-    _, t_p_val_b = scipy.stats.ttest_ind(acc_u, acc_t, equal_var=False)
+    _, t_p_val = scipy.stats.ttest_ind(acc_u, acc_t, equal_var=False)
     """
     We can use this test, if we observe two independent samples from the same or different population, e.g. exam scores of boys and girls or of two ethnic groups. The test measures whether the average (expected) value differs significantly across samples. If we observe a large p-value, for example larger than 0.05 or 0.1, then we cannot reject the null hypothesis of identical average scores. If the p-value is smaller than the threshold, e.g. 1%, 5% or 10%, then we reject the null hypothesis of equal averages.
     """
@@ -47,11 +46,10 @@ for test in results_pymfe.columns:
     """
 
     print(f"Experiment: {test}")
-    print("   (t-test) p-value (equal variances of U and T)", t_p_val_a)
-    print("   (t-test) p-value (maybe not equal variaces of U and T)", t_p_val_b)
+    print("   (t-test) p-value:", t_p_val)
     print("   (h-test) p-value:", h_p_val)
     print()
 
 
 print("Summary:")
-print(summary)
+print((100. * summary).round(2))
